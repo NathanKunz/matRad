@@ -36,6 +36,9 @@ function weightGradient = matRad_objectiveGradient(optiProb,w,dij,cst)
 
 % get current dose / effect / RBExDose vector
 %d = matRad_backProjection(w,dij,optiProb);
+%optiProb.BP = optiProb.BP.compute(dij,w);
+
+%dij.physicalDose{1} = gpuArray(dij.physicalDose{1});
 optiProb.BP = optiProb.BP.compute(dij,w);
 d = optiProb.BP.GetResult();
 
@@ -80,6 +83,10 @@ end
 %project to weight gradient
 optiProb.BP = optiProb.BP.computeGradient(dij,doseGradient,w);
 g = optiProb.BP.GetGradient();
-weightGradient = g{1};
-
+%maybe move to back projection later or change to single
+if isa(g{1}, 'single')
+    weightGradient = double(g{1});
+else
+    weightGradient = g{1};
+end
 end

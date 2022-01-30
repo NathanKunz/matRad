@@ -80,3 +80,11 @@ for  i = 1:size(cst,1)
     end
     
 end
+
+if isgpuarray(f)
+    f = gather(f);
+end
+
+if isa(f, 'single')
+    f = double(f);
+end

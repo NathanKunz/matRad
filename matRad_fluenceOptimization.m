@@ -191,7 +191,30 @@ switch pln.propOpt.bioOptimization
     case 'LEMIV_RBExD'
         backProjection = matRad_VariableRBEProjection;
     case 'none'
-        backProjection = matRad_DoseProjection;
+%         backProjection = matRad_DoseProjection;
+%         % gpu Acceleration
+        if ~isfield(pln.propOpt, 'gpuOpt')
+            backProjection = matRad_DoseProjection;
+        else
+%             
+            switch pln.propOpt.gpuOpt
+                case 'gpuArray'
+                    backProjection = matRad_DoseProjectionGpuArray;
+                    % load dij onto gpu for dose calculation with gpu arrays
+                    dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);
+                 case 'gpuMex'
+                     backProjection = matRad_DoseProjectionGpuMex;
+                 case 'gpuMexCuSparse'
+                     backProjection = matRad_DoseProjectionGpuMexCuSparse;
+                     % load dij physical dose into gpu sparse array 
+                     dij.physicalDoseGpu = cellfun(@matRad_gpuSparse, dij.physicalDose, 'UniformOutput', false);
+%                 case 'gpuCuda'
+%                     backProjection =  matRad_DoseProjectionGpuCuda;
+                otherwise
+                    backProjection = matRad_DoseProjection;
+            end
+        end
+            
     otherwise
         warning(['Did not recognize bioloigcal setting ''' pln.probOpt.bioOptimization '''!\nUsing physical dose optimization!']);
         backProjection = matRad_DoseProjection;
@@ -217,9 +240,8 @@ switch pln.propOpt.optimizer
         warning(['Optimizer ''' pln.propOpt.optimizer ''' not known! Fallback to IPOPT!']);
         optimizer = matRad_OptimizerIPOPT;
 end
-        
-%optimizer = matRad_OptimizerFmincon;
 
+%optimizer = matRad_OptimizerFmincon;
 optimizer = optimizer.optimize(wInit,optiProb,dij,cst);
 
 wOpt = optimizer.wResult;
