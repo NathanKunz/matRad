@@ -200,4 +200,11 @@ elseif isa(optiProb.BP,'matRad_EffectProjection')
         
     end
 end
+
+if isgpuarray(c)
+    c = gather(c); % gather c when using gpu operations
+end
+
+c = double(c); % cast if c is single from runing on gpu
+
 end

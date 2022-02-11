@@ -91,3 +91,9 @@ for  i = 1:size(cst,1)
     end % if structure not empty and oar or target
 
 end % over all structures
+
+if isgpuarray(c)
+    c = gather(c); % gather c when using gpu operations
+end
+
+c = double(c); % cast if c is single from runing on gpu
