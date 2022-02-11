@@ -190,38 +190,38 @@ switch pln.propOpt.bioOptimization
         backProjection = matRad_ConstantRBEProjection;
     case 'LEMIV_RBExD'
         backProjection = matRad_VariableRBEProjection;
-    case 'none'
-%         backProjection = matRad_DoseProjection;
-%         % gpu Acceleration
-        if ~isfield(pln.propOpt, 'gpuOpt')
-            backProjection = matRad_DoseProjection;
-        else
-%             
-            switch pln.propOpt.gpuOpt
-                case 'gpuArray'
-                    backProjection = matRad_DoseProjectionGpuArray;
-                    % load dij onto gpu for dose calculation with gpu arrays
-                    dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);
-                 case 'gpuMex'
-                     backProjection = matRad_DoseProjectionGpuMex;
-                 case 'gpuMexCuSparse'
-                     backProjection = matRad_DoseProjectionGpuMexCuSparse;
-                     % load dij physical dose into gpu sparse array 
-                     dij.physicalDoseGpu = cellfun(@matRad_gpuSparse, dij.physicalDose, 'UniformOutput', false);
-%                 case 'gpuCuda'
-%                     backProjection =  matRad_DoseProjectionGpuCuda;
-                otherwise
-                    backProjection = matRad_DoseProjection;
-            end
-        end
-            
+    case 'none'        
+        backProjection = matRad_DoseProjection;
     otherwise
         warning(['Did not recognize bioloigcal setting ''' pln.probOpt.bioOptimization '''!\nUsing physical dose optimization!']);
         backProjection = matRad_DoseProjection;
 end
-        
 
-%backProjection = matRad_DoseProjection();
+% check for gpu optimization %Todo check if gpu optimization is possible
+% and evaluate the current backProjection into the gpu back projection
+% not a good way to do this
+if isfield(pln.propOpt, 'gpuOpt')
+    
+    if exist([class(backProjection) pln.propOpt.gpuOpt], 'class') == 8
+        
+        % realy bad way to handle this
+        backProjection = feval([class(backProjection) pln.propOpt.gpuOpt]);
+        
+        % switch to move the physical dose to the gpu or create a fitting
+        % objective containing the physical dose
+        switch pln.propOpt.gpuOpt
+            case 'GpuArray'
+                % load dij onto gpu for dose calculation with gpu arrays
+                dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);                 
+             case 'GpuMexCuSparse'
+                 % load dij physical dose into gpu sparse array 
+                 dij.physicalDoseGpu = cellfun(@matRad_gpuSparse, dij.physicalDose, 'UniformOutput', false);
+        end
+    else
+        warning(['Did not recognize gpu projection setting ''' pln.propOpt.gpuOpt '''!\nUsing physical dose optimization!']);
+        backProjection = matRad_DoseProjection;
+    end
+end
 
 optiProb = matRad_OptimizationProblem(backProjection);
 
@@ -234,6 +234,7 @@ end
 switch pln.propOpt.optimizer
     case 'IPOPT'
         optimizer = matRad_OptimizerIPOPT;
+        optimizer.visBool = false;
     case 'fmincon'
         optimizer = matRad_OptimizerFmincon;
     otherwise
@@ -243,6 +244,11 @@ end
 
 %optimizer = matRad_OptimizerFmincon;
 optimizer = optimizer.optimize(wInit,optiProb,dij,cst);
+
+% remove physical dose from gpu (should not be necessary with matlab memory management)
+if isfield(dij, 'physicalDoseGpu')
+    dij = rmfield(dij, 'physicalDoseGpu');
+end
 
 wOpt = optimizer.wResult;
 info = optimizer.resultInfo;

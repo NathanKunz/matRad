@@ -83,10 +83,9 @@ end
 %project to weight gradient
 optiProb.BP = optiProb.BP.computeGradient(dij,doseGradient,w);
 g = optiProb.BP.GetGradient();
-%maybe move to back projection later or change to single
-if isa(g{1}, 'single')
-    weightGradient = double(g{1});
-else
-    weightGradient = g{1};
-end
+
+g = cellfun(@double, g, 'UniformOutput', false); % cast to double if g is single
+
+weightGradient = g{1};
+
 end

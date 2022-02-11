@@ -22,7 +22,7 @@ compile with matlab: mex -R2018a matRad_deconstructSparse.cpp
 compile with matlab for debug: mex -R2018a -v -g matRad_deconstructSparse.cpp use (https://de.mathworks.com/help/matlab/matlab_external/debugging-on-microsoft-windows-platforms.html) for DB on windows
 compile from matRad_Root: mex -R2018a -outdir 'gpuAcceleration/mex' 'gpuAcceleration/mex/matRad_deconstructSparse.cpp'
 
-run with matlab: [pr,ir,jc] = seperateSparse(sparseMatrix);
+run with matlab: [pr,ir,jc] = matRad_deconstructSparse(sparseMatrix);
 */
 
 #include "mex.h"

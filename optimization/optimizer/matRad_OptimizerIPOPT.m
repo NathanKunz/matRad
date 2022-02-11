@@ -22,6 +22,7 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
         wResult
         resultInfo
         env
+        visBool = true
     end
     
     properties (Access = private)
@@ -244,7 +245,7 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
             obj.allObjectiveFunctionValues(iter + 1) = objective;
             %We don't want the optimization to crash because of drawing
             %errors
-            if ~obj.plotFailed
+            if ~obj.plotFailed && obj.visBool
                 try            
                     obj.plotFunction();
                 catch ME

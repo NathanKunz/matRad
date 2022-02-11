@@ -46,7 +46,7 @@ classdef matRad_gpuSparse
             
             %-- Call a mex function that return the parts of the sparse
             %matrxi as gpu array and set the properties
-            [pr, ir, jc] = matRad_deconstructSparse(S);
+            [pr, ir, jc] = matRad_deconstructSparse(S); % could also use matRad_deconstructSparseSingle but this works fine
             
             obj.pr = gpuArray(single(pr));
             obj.ir = gpuArray(int32(ir));

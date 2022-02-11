@@ -85,6 +85,5 @@ if isgpuarray(f)
     f = gather(f);
 end
 
-if isa(f, 'single')
-    f = double(f);
-end
+f = double(f); % cast if f is single 
+

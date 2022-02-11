@@ -16,13 +16,13 @@
 %clear all
 
 matRad_rc
-writeDoc = 0;
+writeDoc = 1;
 if ~exist('numOfBeams', 'var')
     numOfBeams = 5;
 end
 % outomated testing
 if ~exist('optimizationType', 'var')
-    optimizationType = 'none';%'gpuMex', 'gpuArray', 'none'
+    optimizationType = 'gpuMexCuSparse';%'gpuMex', 'gpuArray', 'none', 'gpuMexCuSparse'
 end
 
 if ~exist('runDoseCalc', 'var')

@@ -1,5 +1,5 @@
-classdef matRad_DoseProjectionGpuMexCuSparse < matRad_BackProjection
-% matRad_DoseProjection class to compute physical dose during optimization
+classdef matRad_DoseProjectionGpuMexCuSparse < matRad_BackProjectionGpuMexCuSparse
+% matRad_DoseProjection class to compute physical dose with the help of CuSparse during optimization
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -14,48 +14,13 @@ classdef matRad_DoseProjectionGpuMexCuSparse < matRad_BackProjection
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     
-      
     methods
         function obj = matRad_DoseProjectionGpuMexCuSparse()
             
-        end
+        end   
+    end
     
-        function obj = compute(obj,dij,w)
-            if ~isequal(obj.wCache,w)
-                if ~isgpuarray(w)
-                    w = gpuArray(w);
-                end
-                obj.d = obj.computeResult(dij,w);
-                obj.wCache = w;
-            end
-        end
-        
-        function obj = computeGradient(obj,dij,doseGrad,w)
-            if ~isequal(obj.wGradCache,w)
-                obj.wGrad = obj.projectGradient(dij,doseGrad,w);
-                obj.wGradCache = w;
-            end
-        end
-        
-        function d = GetResult(obj)
-            d = obj.d;
-            %d = cellfun(@(d) gather(d), obj.d, 'UniformOutput', false);
-        end
-        
-        function wGrad = GetGradient(obj)
-            %wGrad = obj.wGrad;
-            wGrad = cellfun(@(wGrad) gather(wGrad), obj.wGrad, 'UniformOutput', false);
-        end
-        
-        function d = computeResult(obj,dij,w)
-            d = cell(size(dij.physicalDoseGpu));
-            d = arrayfun(@(scen) computeSingleScenario(obj,dij,scen,w),ones(size(dij.physicalDoseGpu)),'UniformOutput',false);
-        end
-        
-        function wGrad = projectGradient(obj,dij,doseGrad,w)
-            wGrad = cell(size(dij.physicalDoseGpu));
-            wGrad = arrayfun(@(scen) projectSingleScenarioGradient(obj,dij,doseGrad,scen,w),ones(size(dij.physicalDoseGpu)),'UniformOutput',false);
-        end
+    methods
         
         function d = computeSingleScenario(~,dij,scen,w)
             if ~isempty(dij.physicalDoseGpu{scen})
