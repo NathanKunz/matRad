@@ -110,17 +110,16 @@ classdef matRad_gpuSparse
             obj.trans = xor(obj.trans, 1); % flip transpose flag
         end
         
-        function test(obj)
-            disp(obj)
-        end
     end
-
+    
+    % TODO
     methods (Static)
 
         function ret = checkMex()
         end
 
-        function ret = compileAll()
+        function compileMex()
+            compileAll();
         end
 
     end

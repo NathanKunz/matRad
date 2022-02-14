@@ -93,7 +93,7 @@ radiationModeRet = cell(nel, 1);
 nBeamsRet = cell(nel, 1);
 resolutionRet = cell(nel, 1);
 numberOfScenariosRet = cell(nel, 1);
-numOfVoxelsRet= cell(nel, 1);
+numOfBixels= cell(nel, 1);
 
 phyiscalDoseSizeMRet = cell(nel, 1);
 physicalDoseSizeNRet = cell(nel, 1);
@@ -143,7 +143,7 @@ for k = 1:length(fileList)
         nBeamsRet{res_idx} = dij.numOfBeams;
         resolutionRet{res_idx} = dij.doseGrid.resolution.x;
         numberOfScenariosRet{res_idx} = dij.numOfScenarios;
-        numOfVoxelsRet{res_idx} = dij.doseGrid.numOfVoxels;
+        numOfBixels{res_idx} = dij.bixelNum;
 
         
         % need to extract the physical Dose cube from dij to check the
@@ -249,12 +249,12 @@ end
 %delete(gpuzLogFile) % delete for next time
     
 %% create table from output vector
-variableNames_de = {'Phantom','GPU Optimierung', 'Modalität', 'Anzahl Beams', 'Aufloesung', 'Anzahl Szenarien', 'Anzahl Voxel', 'Physical Dose Zeilen', 'Physical Dose Spalten', 'Anzahl NNZ', ...
+variableNames_de = {'Phantom','GPU Optimierung', 'Modalität', 'Anzahl Beams', 'Aufloesung', 'Anzahl Szenarien', 'Anzahl Bixel', 'Physical Dose Zeilen', 'Physical Dose Spalten', 'Anzahl NNZ', ...
     'Verhaeltnis NNZ', 'Groeße Physical Dose', 'Iterationen', 'CPU secs in IPOPT', 'Gesamtzeit', 'Laufzeit Back-Projection Mittelwert', 'Laufzeit Back-Projection Standardabweichung', ...
     'Laufzeit Back-Projection Gradient Mittelwert', 'Laufzeit Back-Projection Gradient Standardabweichung', 'Maximale GPU Auslastung', 'Maximaler belegter GPU Speicher', 'Startzeit', 'Endzeit', 'Dateiname', 'Error'};
 variableNames_en = {};
 
-resultTable = table(phantomRet ,optTypeRet, radiationModeRet, nBeamsRet, resolutionRet, numberOfScenariosRet, numOfVoxelsRet, phyiscalDoseSizeMRet, physicalDoseSizeNRet, nnzRet, ...
+resultTable = table(phantomRet ,optTypeRet, radiationModeRet, nBeamsRet, resolutionRet, numberOfScenariosRet, numOfBixels, phyiscalDoseSizeMRet, physicalDoseSizeNRet, nnzRet, ...
     nnzRatioRet, bytesRet, nIterationsRet, ipoptTimeRet, fullTimeRet, backProjectionMeanRet, backProjectionStdRet, backProjectionGradientMeanRet, ...
     backProjectionGradientStdRet, gpuMaxUsageRet, gpuMaxMemoryRet, startTimeRet, endTimeRet, fileNameRet, errorRet, ...
     'VariableNames', variableNames_de);

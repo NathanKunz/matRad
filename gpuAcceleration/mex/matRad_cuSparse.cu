@@ -205,6 +205,7 @@ void mexFunction(
     }*/
 
     // return data
+    CHECK_CUDA(cudaDeviceSynchronize()); // GPUMex should handle the sychronization, but its not clear from the documentation
     plhs[0] = mxGPUCreateMxArrayOnGPU(y);
 
     // free data
