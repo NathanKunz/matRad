@@ -1,15 +1,14 @@
-function weightGradient = matRad_objectiveGradient(optiProb,w,dij,cst)
+function weightGradient = matRad_objectiveGradient(optiProb,w,cst)
 % matRad IPOPT callback: gradient function for inverse planning 
 % supporting mean dose objectives, EUD objectives, squared overdosage, 
 % squared underdosage, squared deviation and DVH objectives
 % 
 % call
-%   g = matRad_gradFuncWrapper(optiProb,w,dij,cst)
+%   g = matRad_gradFuncWrapper(optiProb,w,cst)
 %
 % input
 %   optiProb: option struct defining the type of optimization
 %   w:       bixel weight vector
-%   dij:     dose influence matrix
 %   cst:     matRad cst struct
 %
 % output
@@ -38,12 +37,11 @@ function weightGradient = matRad_objectiveGradient(optiProb,w,dij,cst)
 %d = matRad_backProjection(w,dij,optiProb);
 %optiProb.BP = optiProb.BP.compute(dij,w);
 
-%dij.physicalDose{1} = gpuArray(dij.physicalDose{1});
-optiProb.BP = optiProb.BP.compute(dij,w);
+optiProb.BP = optiProb.BP.compute(optiProb.dij,w);
 d = optiProb.BP.GetResult();
 
 % Initializes dose gradient
-doseGradient{1} = zeros(dij.doseGrid.numOfVoxels,1);
+doseGradient{1} = zeros(optiProb.dij.doseGrid.numOfVoxels,1);
 
 % compute objective function for every VOI.
 for  i = 1:size(cst,1)    
@@ -81,7 +79,7 @@ for  i = 1:size(cst,1)
 end
   
 %project to weight gradient
-optiProb.BP = optiProb.BP.computeGradient(dij,doseGradient,w);
+optiProb.BP = optiProb.BP.computeGradient(optiProb.dij,doseGradient,w);
 g = optiProb.BP.GetGradient();
 
 g = cellfun(@double, g, 'UniformOutput', false); % cast to double if g is single

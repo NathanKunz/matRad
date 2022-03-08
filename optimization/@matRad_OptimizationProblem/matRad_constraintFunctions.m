@@ -1,16 +1,15 @@
-function c = matRad_constraintFunctions(optiProb,w,dij,cst)
+function c = matRad_constraintFunctions(optiProb,w,cst)
 % matRad IPOPT callback: constraint function for inverse planning 
 % supporting max dose constraint, min dose constraint, min mean dose constraint, 
 % max mean dose constraint, min EUD constraint, max EUD constraint, 
 % max DVH constraint, min DVH constraint 
 % 
 % call
-%   c = matRad_constraintFunctions(optiProb,w,dij,cst)
+%   c = matRad_constraintFunctions(optiProb,w,cst)
 %
 % input
 %   optiProb:   option struct defining the type of optimization
 %   w:          bixel weight vector
-%   dij:        dose influence matrix
 %   cst:        matRad cst struct
 %
 % output
@@ -35,7 +34,7 @@ function c = matRad_constraintFunctions(optiProb,w,dij,cst)
 
 % get current dose / effect / RBExDose vector
 %d = matRad_backProjection(w,dij,optiProb);
-optiProb.BP = optiProb.BP.compute(dij,w);
+optiProb.BP = optiProb.BP.compute(optiProb.dij,w);
 d = optiProb.BP.GetResult();
 
 % Initializes constraints

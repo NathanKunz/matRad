@@ -1,4 +1,4 @@
-function f = matRad_objectiveFunction(optiProb,w,dij,cst)
+function f = matRad_objectiveFunction(optiProb,w,cst)
 % matRad IPOPT objective function wrapper
 % 
 % call
@@ -7,7 +7,6 @@ function f = matRad_objectiveFunction(optiProb,w,dij,cst)
 % input
 %   optiProb: matRad optimization problem
 %   w:        beamlet/ pencil beam weight vector
-%   dij:      matRad dose influence struct
 %   cst:      matRad cst struct
 %
 % output
@@ -31,7 +30,7 @@ function f = matRad_objectiveFunction(optiProb,w,dij,cst)
 
 % get current dose / effect / RBExDose vector
 %d = optiProb.matRad_backProjection(w,dij);
-optiProb.BP = optiProb.BP.compute(dij,w);
+optiProb.BP = optiProb.BP.compute(optiProb.dij,w);
 d = optiProb.BP.GetResult();
 
 

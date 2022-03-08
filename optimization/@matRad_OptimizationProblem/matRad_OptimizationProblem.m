@@ -23,28 +23,33 @@ classdef matRad_OptimizationProblem < handle
     
     properties
         BP              %matRad_BackProjection object for mapping & backprojection
-        bioOpt = '';    
+        bioOpt = '';
+    end
+    
+    properties(SetAccess = immutable)
+        dij;
     end
     
     methods
-        function obj = matRad_OptimizationProblem(backProjection)
+        function obj = matRad_OptimizationProblem(backProjection,dij)
             obj.BP = backProjection;
+            obj.dij = dij;
         end       
         
         %Objective function declaration
-        fVal = matRad_objectiveFunction(optiProb,w,dij,cst)   
+        fVal = matRad_objectiveFunction(optiProb,w,cst)   
         
         %Objective gradient declaration
-        fGrad = matRad_objectiveGradient(optiProb,w,dij,cst)
+        fGrad = matRad_objectiveGradient(optiProb,w,cst)
         
         %Constraint function declaration
-        cVal = matRad_constraintFunctions(optiProb,w,dij,cst)
+        cVal = matRad_constraintFunctions(optiProb,w,cst)
         
         %Constraint Jacobian declaration
-        cJacob = matRad_constraintJacobian(optiProb,w,dij,cst)
+        cJacob = matRad_constraintJacobian(optiProb,w,cst)
         
         %Jacobian Structure
-        jacobStruct = matRad_getJacobianStructure(optiProb,w,dij,cst)
+        jacobStruct = matRad_getJacobianStructure(optiProb,w,cst)
         
         [cl,cu] = matRad_getConstraintBounds(optiProb,cst)
         

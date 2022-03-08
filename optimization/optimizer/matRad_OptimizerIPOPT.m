@@ -110,7 +110,7 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
 
         end
         
-        function obj = optimize(obj,w0,optiProb,dij,cst)
+        function obj = optimize(obj,w0,optiProb,cst)
             matRad_cfg = MatRad_Config.instance();
             
             % set optimization options            
@@ -130,11 +130,11 @@ classdef matRad_OptimizerIPOPT < matRad_Optimizer
             
             % set callback functions.
             
-            funcs.objective         = @(x) optiProb.matRad_objectiveFunction(x,dij,cst);
-            funcs.constraints       = @(x) optiProb.matRad_constraintFunctions(x,dij,cst);
-            funcs.gradient          = @(x) optiProb.matRad_objectiveGradient(x,dij,cst);
-            funcs.jacobian          = @(x) optiProb.matRad_constraintJacobian(x,dij,cst);
-            funcs.jacobianstructure = @( ) optiProb.matRad_getJacobianStructure(w0,dij,cst);
+            funcs.objective         = @(x) optiProb.matRad_objectiveFunction(x,cst);
+            funcs.constraints       = @(x) optiProb.matRad_constraintFunctions(x,cst);
+            funcs.gradient          = @(x) optiProb.matRad_objectiveGradient(x,cst);
+            funcs.jacobian          = @(x) optiProb.matRad_constraintJacobian(x,cst);
+            funcs.jacobianstructure = @( ) optiProb.matRad_getJacobianStructure(w0,cst);
             funcs.iterfunc          = @(iter,objective,paramter) obj.iterFunc(iter,objective,paramter,ipoptStruct.ipopt.max_iter);
             
             % Informing user to press q to terminate optimization
