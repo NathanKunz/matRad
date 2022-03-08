@@ -202,28 +202,42 @@ end
 % not a good way to do this
 if isfield(pln.propOpt, 'gpuOpt')
     
-    if exist([class(backProjection) pln.propOpt.gpuOpt], 'class') == 8
-        
-        % realy bad way to handle this
-        backProjection = feval([class(backProjection) pln.propOpt.gpuOpt]);
-        
-        % switch to move the physical dose to the gpu or create a fitting
-        % objective containing the physical dose
-        switch pln.propOpt.gpuOpt
-            case 'GpuArray'
-                % load dij onto gpu for dose calculation with gpu arrays
-                dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);                 
-             case 'GpuMexCuSparse'
-                 % load dij physical dose into gpu sparse array 
-                 dij.physicalDoseGpu = cellfun(@matRad_gpuSparse, dij.physicalDose, 'UniformOutput', false);
+    % reset gpu memory before optimization
+    g = gpuDevice(1); % breaks if no gpu device is available
+    reset(g);
+    
+    % todo checks for gpu and cuda compatability with matlab version 
+    % e.g. Matlab 2020b doesnt support 8.x compartibily
+    % and check for enough gpu storage
+%     if str2double(g.ComputeCapability) <= 8.0
+    
+        if exist([class(backProjection) pln.propOpt.gpuOpt], 'class') == 8
+
+            % realy bad way to handle this
+            backProjection = feval([class(backProjection) pln.propOpt.gpuOpt]);
+
+            % switch to move the physical dose to the gpu or create a fitting
+            % objective containing the physical dose
+            switch pln.propOpt.gpuOpt
+
+                case 'GpuArray'
+                    % load dij onto gpu for dose calculation with gpu arrays
+                    dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);                 
+                 case 'GpuMexCuSparse'
+                     % load dij physical dose into gpu sparse array 
+                     dij.physicalDoseGpu = cellfun(@matRad_gpuSparse, dij.physicalDose, 'UniformOutput', false);
+            end
+        else
+            warning(['Did not recognize gpu projection setting ''' pln.propOpt.gpuOpt '''!\nUsing physical dose optimization!']);
+            backProjection = matRad_DoseProjection;
         end
-    else
-        warning(['Did not recognize gpu projection setting ''' pln.propOpt.gpuOpt '''!\nUsing physical dose optimization!']);
-        backProjection = matRad_DoseProjection;
-    end
+%     else
+%         warning(['Gpu Device with Capability' g.ComputeCapability 'are not supported!\nUsing CPU physical dose optimization!']);
+%         backProjection = matRad_DoseProjection;
+%     end
 end
 
-optiProb = matRad_OptimizationProblem(backProjection);
+optiProb = matRad_OptimizationProblem(backProjection,dij);
 
 %optimizer = matRad_OptimizerIPOPT;
 
@@ -243,7 +257,7 @@ switch pln.propOpt.optimizer
 end
 
 %optimizer = matRad_OptimizerFmincon;
-optimizer = optimizer.optimize(wInit,optiProb,dij,cst);
+optimizer = optimizer.optimize(wInit,optiProb,cst);
 
 % remove physical dose from gpu (should not be necessary with matlab memory management)
 if isfield(dij, 'physicalDoseGpu')
