@@ -23,8 +23,6 @@ function [projectTime_mean, projectTime_std, gradTime_mean, gradTime_std] = test
                         backProjection = matRad_DoseProjectionGpuArray;
                         % load dij onto gpu for dose calculation with gpu arrays
                         dij.physicalDoseGpu = cellfun(@gpuArray, dij.physicalDose,  'UniformOutput', false);
-                     case 'gpuMex'
-                         backProjection = matRad_DoseProjectionGpuMex;
                      case 'gpuMexCuSparse'
                          backProjection = matRad_DoseProjectionGpuMexCuSparse;
                          % load dij physical dose into gpu sparse array 
