@@ -14,15 +14,17 @@
 */
 
 /*
-Function for seperating the three component arrays of a sparse matrix into 3 sperate vector arrays
-helper function for the gpuSparse class
+Function for seperating the three component arrays of a sparse matrix into 
+3 sperate vector arrays, convert them to single and move the result vectors to the gpu
+
+!not used look matRad_deconstructSparse for used function!
+helper function for the gpuSparse class, 
 
 compiling needs a matlab supported c/c++ compiler e.g. Microsoft Visual Studio C++ or MinGW64
-compile with matlab: mex -R2018a matRad_deconstructSparseSingle.cpp
-compile with matlab for debug: mex -R2018a -v -g matRad_deconstructSparseSingle.cpp use (https://de.mathworks.com/help/matlab/matlab_external/debugging-on-microsoft-windows-platforms.html) for DB on windows
-compile from matRad_Root: mex -R2018a -outdir 'gpuAcceleration/mex' 'gpuAcceleration/mex/matRad_deconstructSparseSingle.cpp'
+mexcuda -R2018a -outdir 'gpuAcceleration/mex' 'gpuAcceleration/mex/matRad_deconstructSparseSingle.cpp'
 
-run with matlab: [pr,ir,jc] = matRad_deconstructSparse(sparseMatrix);
+
+run with matlab: [pr,ir,jc] = matRad_deconstructSparseSingle(sparseMatrix);
 */
 
 #include "mex.h"

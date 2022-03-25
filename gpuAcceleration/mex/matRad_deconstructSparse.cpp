@@ -15,7 +15,7 @@
 
 /*
 Function for seperating the three component arrays of a sparse matrix into 3 sperate vector arrays
-helper function for the gpuSparse class
+helper function for the matRad_gpuSparse class
 
 compiling needs a matlab supported c/c++ compiler e.g. Microsoft Visual Studio C++ or MinGW64
 compile with matlab: mex -R2018a matRad_deconstructSparse.cpp

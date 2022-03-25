@@ -143,7 +143,7 @@ for k = 1:length(fileList)
         nBeamsRet{res_idx} = dij.numOfBeams;
         resolutionRet{res_idx} = dij.doseGrid.resolution.x;
         numberOfScenariosRet{res_idx} = dij.numOfScenarios;
-        numOfBixels{res_idx} = dij.bixelNum;
+        numOfBixels{res_idx} = dij.totalNumOfBixels;
 
         
         % need to extract the physical Dose cube from dij to check the
@@ -265,8 +265,8 @@ resultTable = table(phantomRet ,optTypeRet, radiationModeRet, nBeamsRet, resolut
 %resultTable = fillmissing(resultTable,'constant',nan);
 
 % write table to csv and excel
-writetable(resultTable, [fullfile(matRad_cfg.matRadRoot,'./gpuAcceleration/output/'), 'gpuResultData.xlsx'], 'Sheet', 1)
-writetable(resultTable, [fullfile(matRad_cfg.matRadRoot,'./gpuAcceleration/output/'), 'gpuResultData.csv'], 'Delimiter', ',');
+writetable(resultTable, [fullfile(matRad_cfg.matRadRoot,'./gpuAcceleration/output/'), 'gpuResultData2002.xlsx'], 'Sheet', 1)
+writetable(resultTable, [fullfile(matRad_cfg.matRadRoot,'./gpuAcceleration/output/'), 'gpuResultData2002.csv'], 'Delimiter', ',');
 
 %% clear the folder if wanted
 clearFolder = 0;
