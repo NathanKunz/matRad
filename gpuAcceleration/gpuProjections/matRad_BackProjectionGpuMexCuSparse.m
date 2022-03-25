@@ -3,7 +3,7 @@ classdef matRad_BackProjectionGpuMexCuSparse < matRad_BackProjection
 % used within matRad optimzation processes accelerated for the use of a mex
 % file containing code for the calculation with CuSparse
 %
-% dij need to contain a field called phyiscalDoseGpu which contains the
+% dij needs to contain a field called phyiscalDoseGpu which contains the
 % phyiscal dose(s) represented as a matRad_gpuSparse object, this should be
 % set in the fluenceOptimization
 %

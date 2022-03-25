@@ -17,11 +17,16 @@
 Mex Function for Computing a sparse vector product with
 
 compiling needs a matlab supported c/c++ compiler e.g. Microsoft Visual Studio C++ or MinGW64 and CUDA
-compile with matlab: mexcuda matRad_cuSparse.cu
-compile with matlab for debug: mexcuda -v -g matRad_cuSparse.cu use (https://de.mathworks.com/help/matlab/matlab_external/debugging-on-microsoft-windows-platforms.html) for DB on windows
-compile from matRad_Root: mexcuda  -outdir 'gpuAcceleration/mex' 'gpuAcceleration/mex/matRad_cuSparse.cu'
+compile with matlab: mexcuda  'matRad_cuSparse.cu' ...
+        -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.5\include" ...
+        -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.5\lib\x64" ...
+        NVCCFLAGS='"$NVCCFLAGS -Wno-deprecated-gpu-targets"' LDFLAGS='"$LDFLAGS -Wl,--no-as-needed"'...
+        -lcusparse -dynamic -v 
+look into compileAll and compileCUDA for more informations
 
-run with matlab: [pr,ir,jc] = seperateSparse(sparseMatrix);
+
+run with matlab: ret_v = matRad_cuSparse(nrows, ncols, nnz, jc, ir, pr, trans, vector);
+*look into matRad_gpuSparse for more informations
 */
 
 // include matlabs api
@@ -110,6 +115,7 @@ void mexFunction(
 
     mwSize numelx = mxGPUGetNumberOfElements(x);
     cusparseOperation_t trans = (cusparseOperation_t)mxGetScalar(TRANS);
+    cusparseOperation_t trans_csr = (cusparseOperation_t) !mxGetScalar(TRANS);
     //int nx = (trans == CUSPARSE_OPERATION_NON_TRANSPOSE) ? xdims[0] : xdims[1];
 
     // check if size allows multiplication
@@ -167,7 +173,8 @@ void mexFunction(
     float beta = 0.0f;
 
     // create sparse matrix A
-    CHECK_CUSPARSE( cusparseCreateCsc(&matA, A_n_rows, A_n_cols, A_nnz, d_jc_a, d_ir_a, d_val, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F) );
+    //CHECK_CUSPARSE( cusparseCreateCsc(&matA, A_n_rows, A_n_cols, A_nnz, d_jc_a, d_ir_a, d_val, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F) );
+    CHECK_CUSPARSE( cusparseCreateCsr(&matA, A_n_cols, A_n_rows, A_nnz, d_jc_a, d_ir_a, d_val, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F) );
 
     // create dense vector x
     int x_numel = (trans == CUSPARSE_OPERATION_NON_TRANSPOSE) ? A_n_cols: A_n_rows;
@@ -176,11 +183,18 @@ void mexFunction(
     // create dense output vector y
     int y_numel = (trans == CUSPARSE_OPERATION_NON_TRANSPOSE) ? A_n_rows : A_n_cols;
     CHECK_CUSPARSE(cusparseCreateDnVec(&vecY, y_numel, d_y, CUDA_R_32F));
-
-        // create buffer if needed
-    CHECK_CUSPARSE(
+    
+    
+    // create buffer if needed
+    /*CHECK_CUSPARSE(
         cusparseSpMV_bufferSize(
             handle, trans,
+            &alpha, matA, vecX, &beta, vecY, CUDA_R_32F,
+            CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
+    */
+    CHECK_CUSPARSE(
+        cusparseSpMV_bufferSize(
+            handle, trans_csr,
             &alpha, matA, vecX, &beta, vecY, CUDA_R_32F,
             CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
 
@@ -192,7 +206,8 @@ void mexFunction(
     }
 
     // execute SpMV
-    CHECK_CUSPARSE(cusparseSpMV(handle, trans, &alpha, matA, vecX, &beta, vecY, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
+    //CHECK_CUSPARSE(cusparseSpMV(handle, trans, &alpha, matA, vecX, &beta, vecY, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
+    CHECK_CUSPARSE(cusparseSpMV(handle, trans_csr, &alpha, matA, vecX, &beta, vecY, CUDA_R_32F, CUSPARSE_SPMV_ALG_DEFAULT, d_buffer));
 
     /* return result this status check has some problems and return unrecognized error codes now and then propable when no status was set beforehand or another gpu operation writes into status in between operations
     if (status == CUSPARSE_STATUS_SUCCESS)

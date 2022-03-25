@@ -1,7 +1,28 @@
 classdef matRad_gpuSparse
-    % GPUSPARSETEST 
+    % matRad_gpuSparse
     % class for holding a gpu sparse array with single
     % precision in csc format
+    % used in gpu acceleration of fluenz optimization
+    %
+    % this class is using a mex file containing CUDA cuSparse Code
+    % for mtimes operation     
+    % compile with matRad_gpuSparse.compileMex() or compileAll()
+    %
+    % installation of supported CUDA Toolkit and NVIDIA GPU for current matlab
+    % version needed: https://de.mathworks.com/help/parallel-computing/gpu-support-by-release.html
+    %
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % Copyright 2019 the matRad development team.
+    %
+    % This file is part of the matRad project. It is subject to the license
+    % terms in the LICENSE file found in the top-level directory of this
+    % distribution and at https://github.com/e0404/matRad/LICENSES.txt. No part
+    % of the matRad project, including this file, may be copied, modified,
+    % propagated, or distributed except according to the terms contained in the
+    % LICENSE file.
+    %
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     properties
         % (1,1) makes sure it is a scalar or (:,1) a vector not sure if
@@ -39,7 +60,7 @@ classdef matRad_gpuSparse
             
             % TODO
             %-- check if all mex files are compiled else compile them from
-            % ./matRad_root/gpuAcceleration/mex ...
+            %-- check (roughly) if enough storage if available on gpu 
             
             obj.nnz = nnz(S);
             [obj.nrows, obj.ncols] = size(S);
@@ -78,10 +99,12 @@ classdef matRad_gpuSparse
                if ~isgpuarray(arg1)
                    arg1 = gpuArray(arg1);
                end
-               % set tranpose flag to transfome the equation v * M to
-               % transpose(M) * transpose(v)
-               arg2.trans = 1;
+               % set tranpose flag to transforme the equation v * M to
+               % transpose(v * M) = transpose(M) * transpose(v) 
+               % still needs some work
+               arg2.trans = 1; % transpose flag has to be inverted because cuSparse uses csr Format
                ret_v = matRad_cuSparse(arg2.nrows, arg2.ncols, arg2.nnz, arg2.jc, arg2.ir, arg2.pr, arg2.trans, arg1);
+               ret_v = transpose(ret_v); % transpose result  
            
            % matrix * vector
            elseif isa(arg1, 'matRad_gpuSparse') && isvector(arg2)
@@ -98,7 +121,9 @@ classdef matRad_gpuSparse
                if ~isgpuarray(arg2)
                    arg2 = gpuArray(arg2);
                end
-               ret_v = matRad_cuSparse(arg1.nrows, arg1.ncols, arg1.nnz, arg1.jc, arg1.ir, arg1.pr, arg1.transpose, arg2);
+               arg1.trans = 0; % transpose flag has to be inverted because cuSparse uses csr Format
+               ret_v = matRad_cuSparse(arg1.nrows, arg1.ncols, arg1.nnz, arg1.jc, arg1.ir, arg1.pr, arg1.trans, arg2);
+
            elseif ismatrix(arg1) && ismatrix(arg2)
                error('Matrix Matrix product not implemented');
            else
@@ -110,9 +135,37 @@ classdef matRad_gpuSparse
             obj.trans = xor(obj.trans, 1); % flip transpose flag
         end
         
+        function obj = ctranspose(obj) 
+            obj.trans = xor(obj.trans, 1); % flip transpose flag
+        end
+        
+        % functions to can be implemented
+        % s = gather(obj): to gather the gpuArray and cast it to a Matlab sparse
+        % gpuArrayS = sparse(obj): cast to matlab sparse
+        %
+        % y = subref(obj,s): index obj
+        % obj = subasgn(obj,s,b): assign value to index
+        % 
+        % disp(obj): print the content of sparse
+        % eq(a,b): check equality
+        % length(a): get length
+        % sum(a, dim): get Dimension
+        % max(a): get max value
+        % mean(a): get mean
+        % find(a): find indeces of non zero elements
+        % size(a, dim): get size (optional dimension)
+        % numel(a): get number of elements (either nnz or product of size)
+        % full(a): convert to full matrix
+        % 
+        %
+        % times(arg1, arg2): multiply with scalar
+        % mtimes(arg1, arg2): multiple matrix x matrix
+        % transpose(obj): "real" transpose not only setting flag
+        % plus(a,b): cuSparse
+        % minus(a,b): cuSparse
+                
     end
     
-    % TODO
     methods (Static)
 
         function ret = checkMex()
